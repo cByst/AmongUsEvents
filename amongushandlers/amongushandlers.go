@@ -11,14 +11,17 @@ import (
 func AttachHandlers(discordSession *discordgo.Session) error {
 	discordSession.AddHandler(commandHandler)
 	discordSession.AddHandler(messageReactionAddHandle)
+	discordSession.AddHandler(messageReactionRemoveHandle)
 	return nil
+}
+
+func messageReactionRemoveHandle(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
+	message, _ := s.ChannelMessage(m.MessageReaction.ChannelID, m.MessageReaction.MessageID)
+	amongusevents.ReSyncEvent(s, message)
 }
 
 func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 	message, _ := s.ChannelMessage(m.MessageReaction.ChannelID, m.MessageReaction.MessageID)
-	for _, x := range message.Embeds {
-		fmt.Printf("~~~~%+v", x)
-	}
 
 	if m.MessageReaction.UserID == s.State.User.ID || message.Author.ID != s.State.User.ID {
 		return
@@ -29,10 +32,28 @@ func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReaction
 		if err != nil {
 			fmt.Printf("Error removing unsupported reaction %s", err)
 		}
+		err = s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "⏰", m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
 		err = amongusevents.ReSyncEvent(s, message)
 
 	} else if m.MessageReaction.Emoji.Name == "🙅‍♀️" {
 		err := s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "💯", m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
+		err = s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "⏰", m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
+		err = amongusevents.ReSyncEvent(s, message)
+	} else if m.MessageReaction.Emoji.Name == "⏰" {
+		err := s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "💯", m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
+		err = s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "🙅‍♀️", m.MessageReaction.UserID)
 		if err != nil {
 			fmt.Printf("Error removing unsupported reaction %s", err)
 		}
@@ -50,20 +71,16 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// Need to implement permissions over who can run commands on the bot
+	userIsPrivledged, err := isUserPrivleged(s, m.Author.ID, m.GuildID)
+	if err != nil {
 
-	// permission, err := s.State.UserChannelPermissions(m.Author.ID, m.ChannelID)
-	// if err != nil {
-	// 	log.Error(errors.WithMessage(err, "Error checking users permissions"))
-	// 	permission = 0
-	// }
+	}
+	if !userIsPrivledged {
+		return
+	}
 
-	// if permission < 1 {
-	// 	return
-	// }
-
-	if strings.HasPrefix(m.Content, "!CreateEvent") {
-		title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateEvent "), "\"")
+	if strings.HasPrefix(m.Content, "!CreateAmongEvent ") {
+		title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateAmongEvent "), "\"")
 
 		err := amongusevents.CreateEvent(s, title, m.ChannelID)
 		if err != nil {
@@ -72,4 +89,36 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	return
+}
+
+func isUserPrivleged(s *discordgo.Session, userId, guildId string) (bool, error) {
+	amongUsRoleID, err := getAmongUsRoleID(s, guildId)
+	if err != nil {
+		return false, err
+	}
+
+	member, err := s.GuildMember(guildId, userId)
+	if err != nil {
+		return false, err
+	} else {
+		for _, role := range member.Roles {
+			if role == amongUsRoleID {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+}
+
+func getAmongUsRoleID(s *discordgo.Session, guildId string) (string, error) {
+	roles, err := s.GuildRoles(guildId)
+	if err != nil {
+		return "-1", err
+	}
+	for _, role := range roles {
+		if "amongusbot" == strings.ToLower(role.Name) {
+			return role.ID, nil
+		}
+	}
+	return "-1", nil
 }
