@@ -5,21 +5,44 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/cbyst/AmongUsHelper/amongusevents"
 )
 
 func AttachHandlers(discordSession *discordgo.Session) error {
 	discordSession.AddHandler(commandHandler)
 	discordSession.AddHandler(messageReactionAddHandle)
-	discordSession.AddHandler(messageReactionRemoveHandle)
 	return nil
 }
 
 func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
-	fmt.Printf("discord user id: %s reacted", m.UserID)
-}
+	message, _ := s.ChannelMessage(m.MessageReaction.ChannelID, m.MessageReaction.MessageID)
+	for _, x := range message.Embeds {
+		fmt.Printf("~~~~%+v", x)
+	}
 
-func messageReactionRemoveHandle(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
-	fmt.Printf("discord user id: %s reacted", m.UserID)
+	if m.MessageReaction.UserID == s.State.User.ID || message.Author.ID != s.State.User.ID {
+		return
+	}
+
+	if m.MessageReaction.Emoji.Name == "💯" {
+		err := s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "🙅‍♀️", m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
+		err = amongusevents.ReSyncEvent(s, message)
+
+	} else if m.MessageReaction.Emoji.Name == "🙅‍♀️" {
+		err := s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, "💯", m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
+		err = amongusevents.ReSyncEvent(s, message)
+	} else {
+		err := s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, m.MessageReaction.Emoji.Name, m.MessageReaction.UserID)
+		if err != nil {
+			fmt.Printf("Error removing unsupported reaction %s", err)
+		}
+	}
 }
 
 func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -42,31 +65,11 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!CreateEvent") {
 		title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateEvent "), "\"")
 
-		newMessage, err := s.ChannelMessageSendEmbed(
-			m.ChannelID,
-			&discordgo.MessageEmbed{
-				Title: title,
-				Color: 15105570,
-				Author: &discordgo.MessageEmbedAuthor{
-					Name:    "Among Us Helper Bot",
-					IconURL: "https://i.imgur.com/Mf4Rj0T.png",
-				},
-				Description: "Test For Among Us Helper",
-				Footer:      &discordgo.MessageEmbedFooter{Text: "TEST Footer"},
-			},
-		)
-		if err != nil {
-			fmt.Printf("Error sending message err: %s", err)
-		}
-		err = addBaseReactions(s, newMessage)
-
+		err := amongusevents.CreateEvent(s, title, m.ChannelID)
 		if err != nil {
 			fmt.Printf("Error sending message err: %s", err)
 		}
 	}
-}
 
-func addBaseReactions(s *discordgo.Session, m *discordgo.Message) error {
-	s.MessageReactionAdd(m.ChannelID, m.ID, "💯")
-	return s.MessageReactionAdd(m.ChannelID, m.ID, "🙅‍♀️")
+	return
 }
