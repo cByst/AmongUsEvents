@@ -63,6 +63,16 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
+    - name: Replace account id secret in task definition
+      run: perl -pi -e 's/\{REPLACE\.AccountId\}/$ENV{ACCOUNTID}/' task-definition.json
+      env:
+        ACCOUNTID: ${{ secrets.AWS_ACCOUNT_ID }}
+
+    - name: Replace token secret in task definition
+      run: perl -pi -e 's/\{REPLACE\.Token\}/$ENV{TOKEN}/' task-definition.json
+      env:
+        TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
