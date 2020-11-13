@@ -82,7 +82,7 @@ func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReaction
 	} else {
 		err = s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, m.MessageReaction.Emoji.Name, m.MessageReaction.UserID)
 		if err != nil {
-			log.Error(errors.WithMessage(err, fmt.Sprintf("Error removing unsupported reactio in message reaction add handler for %s reaction event", m.MessageReaction.Emoji.Name)))
+			log.Error(errors.WithMessage(err, fmt.Sprintf("Error removing unsupported reaction in message reaction add handler for %s reaction event", m.MessageReaction.Emoji.Name)))
 		}
 	}
 }
