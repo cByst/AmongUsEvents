@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/pkg/errors"
 )
 
 type amongUsEventState struct {
@@ -13,9 +14,10 @@ type amongUsEventState struct {
 	eventRequestedTimeChange []string
 }
 
-func CreateEvent(session *discordgo.Session, title string, channelId string) error {
+// CreateEvent creates new among us event and post to specified channel
+func CreateEvent(session *discordgo.Session, title string, channelID string) error {
 	newMessage, err := session.ChannelMessageSendEmbed(
-		channelId,
+		channelID,
 		&discordgo.MessageEmbed{
 			Title: title,
 			Color: 15105570,
@@ -32,25 +34,33 @@ func CreateEvent(session *discordgo.Session, title string, channelId string) err
 		},
 	)
 	if err != nil {
-		fmt.Printf("Error sending message err: %s", err)
+		return errors.Wrapf(err, "Error creating initial ammong us event for channel:%s\nevent title:%s", channelID, title)
 	}
 
 	err = applyBaseReactions(session, newMessage.ChannelID, newMessage.ID)
 
 	if err != nil {
-		fmt.Printf("Error sending message err: %s", err)
+		return errors.Wrapf(err, "Error adding base reactions to inital among us event in channel:%s\nevent title:%s", channelID, title)
 	}
 	return nil
 }
 
+// ReSyncEvent resyncs specified event message with current reactions state of the specified message id
 func ReSyncEvent(session *discordgo.Session, message *discordgo.Message) error {
-	currentState, _ := extractEventState(session, message)
-	currentState.updateEmbedMessageFromState(session, message)
-	return nil
+	currentState, err := extractEventState(session, message)
+	if err != nil {
+		return errors.Wrap(err, "Error extracting event state during resync")
+	}
+
+	err = currentState.updateEmbedMessageFromState(session, message)
+	return errors.Wrap(err, "Error updating embeded message in rsync")
 }
 
 func extractEventState(session *discordgo.Session, message *discordgo.Message) (*amongUsEventState, error) {
-	rsvpYes, _ := session.MessageReactions(message.ChannelID, message.ID, "💯", 100, "", "")
+	rsvpYes, err := session.MessageReactions(message.ChannelID, message.ID, "💯", 100, "", "")
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error getting message reaction info for message: %s in channel: %s reaction: 💯", message.ID, message.ChannelID)
+	}
 
 	var attendingUsers []string
 	for _, user := range rsvpYes {
@@ -59,7 +69,11 @@ func extractEventState(session *discordgo.Session, message *discordgo.Message) (
 		}
 	}
 
-	rsvpNo, _ := session.MessageReactions(message.ChannelID, message.ID, "🙅‍♀️", 100, "", "")
+	rsvpNo, err := session.MessageReactions(message.ChannelID, message.ID, "🙅‍♀️", 100, "", "")
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error getting message reaction info for message: %s in channel: %s reaction: 🙅‍♀️", message.ID, message.ChannelID)
+	}
+
 	var notAttendingUsers []string
 	for _, user := range rsvpNo {
 		if !user.Bot {
@@ -67,7 +81,11 @@ func extractEventState(session *discordgo.Session, message *discordgo.Message) (
 		}
 	}
 
-	timeChangeRequested, _ := session.MessageReactions(message.ChannelID, message.ID, "⏰", 100, "", "")
+	timeChangeRequested, err := session.MessageReactions(message.ChannelID, message.ID, "⏰", 100, "", "")
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error getting message reaction info for message: %s in channel: %s reaction: ⏰", message.ID, message.ChannelID)
+	}
+
 	var timeChangeRequestedUsers []string
 	for _, user := range timeChangeRequested {
 		if !user.Bot {
@@ -111,7 +129,7 @@ func (s *amongUsEventState) updateEmbedMessageFromState(session *discordgo.Sessi
 		}
 		eventRequestedTimeChangeText += "\u200B\n"
 	}
-	session.ChannelMessageEditEmbed(
+	_, err := session.ChannelMessageEditEmbed(
 		message.ChannelID,
 		message.ID,
 		&discordgo.MessageEmbed{
@@ -129,21 +147,22 @@ func (s *amongUsEventState) updateEmbedMessageFromState(session *discordgo.Sessi
 			},
 		},
 	)
-	return nil
+
+	return errors.Wrap(err, "Error updating embed message in updateEmbedMessageFromState")
 }
 
 func applyBaseReactions(session *discordgo.Session, channelID string, messageID string) error {
 	err := session.MessageReactionAdd(channelID, messageID, "💯")
 	if err != nil {
-
+		return errors.Wrap(err, "Error adding base message reaction 💯")
 	}
 	err = session.MessageReactionAdd(channelID, messageID, "🙅‍♀️")
 	if err != nil {
-
+		return errors.Wrap(err, "Error adding base message reaction 🙅‍♀️")
 	}
 	err = session.MessageReactionAdd(channelID, messageID, "⏰")
 	if err != nil {
-
+		return errors.Wrap(err, "Error adding base message reaction ⏰")
 	}
 	return nil
 }

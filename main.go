@@ -41,11 +41,7 @@ func main() {
 
 	defer session.Close()
 
-	err = amongushandlers.AttachHandlers(session)
-	if err != nil {
-		log.Fatal(errors.WithMessage(err, "Error attaching handlers to the discord session"))
-		os.Exit(1)
-	}
+	amongushandlers.AttachHandlers(session)
 
 	err = session.Open()
 	if err != nil {
