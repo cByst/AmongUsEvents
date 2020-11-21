@@ -108,25 +108,27 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// Check if user is privileged to command the bot
-	userIsPrivledged, err := isUserPrivleged(s, m.Author.ID, m.GuildID)
-	if err != nil {
-		log.Error(errors.WithMessage(err, "Issue checking if user is privileged in command handler"))
-	}
-
-	// Ignore message if user is not privileged to command bot
-	if !userIsPrivledged {
-		return
-	}
-
 	// Check message for for command prefix to determine if the message is relevant to the bot
 	if strings.HasPrefix(m.Content, "!CreateAmongEvent ") {
-		title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateAmongEvent "), "\"")
-
-		log.Infof("Creating new among event with title: %s for user: %s", title, m.Author.Username)
-		err = amongusevents.CreateEvent(s, title, m.ChannelID)
+		// Check if user is privileged to command the bot
+		userIsPrivledged, err := isUserPrivleged(s, m.Author.ID, m.GuildID)
 		if err != nil {
-			log.Error(errors.WithMessage(err, "Error creating event in create event command handler"))
+			log.Error(errors.WithMessage(err, "Issue checking if user is privileged in command handler"))
+		}
+
+		// Ignore message if user is not privileged to command bot
+		if !userIsPrivledged {
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%s> You do not have access to create Among Us Events. To create events you need the amongusbot role.", m.Author.ID))
+			// tell users there not permissioned for this
+			return
+		} else {
+			title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateAmongEvent "), "\"")
+
+			log.Infof("Creating new among event with title: %s for user: %s", title, m.Author.Username)
+			err = amongusevents.CreateEvent(s, title, m.ChannelID)
+			if err != nil {
+				log.Error(errors.WithMessage(err, "Error creating event in create event command handler"))
+			}
 		}
 	}
 }
@@ -159,7 +161,7 @@ func getAmongUsRoleID(s *discordgo.Session, guildID string) (string, error) {
 		return "-1", err
 	}
 	for _, role := range roles {
-		if "AmongUs - Events" == strings.ToLower(role.Name) {
+		if "amongusbot" == strings.ToLower(role.Name) {
 			return role.ID, nil
 		}
 	}
