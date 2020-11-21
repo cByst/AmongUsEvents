@@ -1,4 +1,4 @@
-# Among Us Helper - Discord Bot
+# Among Us Events - Discord Bot
 
 A discord bot for organizing and planning among us games. This bot was born out of the pain of trying to organize weekly discord games with a group of friends. The bot allows the organizer to create an event in a given discord channel. Users of this discord server can rsvp to the event with 3 options (accept,decline,change time request).<br /><br />
 <div style="text-align:center"><img src="https://i.imgur.com/xmKToMd.png" width="500" /></div><br /><br />
@@ -7,7 +7,7 @@ A discord bot for organizing and planning among us games. This bot was born out 
 
 Visit and authorize the bot to your discord server: <br />
 
-    https://discord.com/oauth2/authorize?client_id=758468803583279114&scope=bot&permissions=8
+    https://discord.com/oauth2/authorize?client_id=779556729343049729&scope=bot&permissions=485440
 
 Once the bot is authorized and added to your discord server you will need to create a discord role called ``amongusbot`` the privileges of this role do not matter so you can make them as you see fit.
 

@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/cbyst/AmongUsHelper/amongushandlers"
+	"github.com/cbyst/AmongUsEvents/amongushandlers"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -24,7 +24,7 @@ func main() {
 	if *logDebug {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.SetLevel(log.WarnLevel)
+		log.SetLevel(log.InfoLevel)
 	}
 
 	// Check for required token
@@ -49,7 +49,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Among Us Helper is now running.  Press CTRL-C to exit.")
+	fmt.Println("Among Us Events is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc

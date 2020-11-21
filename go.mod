@@ -1,4 +1,4 @@
-module github.com/cbyst/AmongUsHelper
+module github.com/cbyst/AmongUsEvents
 
 go 1.15
 
