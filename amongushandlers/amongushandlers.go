@@ -109,7 +109,7 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Check message for for command prefix to determine if the message is relevant to the bot
-	if strings.HasPrefix(m.Content, "!CreateAmongEvent ") {
+	if strings.HasPrefix(strings.ToLower(m.Content), "!createamongevent ") {
 		// Check if user is privileged to command the bot
 		userIsPrivledged, err := isUserPrivleged(s, m.Author.ID, m.GuildID)
 		if err != nil {
@@ -122,7 +122,7 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			// tell users there not permissioned for this
 			return
 		} else {
-			title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateAmongEvent "), "\"")
+			title := strings.Trim(m.Content[18:len(m.Content)], "\"")
 
 			log.Infof("Creating new among event with title: %s for user: %s", title, m.Author.Username)
 			err = amongusevents.CreateEvent(s, title, m.ChannelID)
