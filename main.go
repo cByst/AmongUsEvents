@@ -24,7 +24,7 @@ func main() {
 	if *logDebug {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.SetLevel(log.WarnLevel)
+		log.SetLevel(log.InfoLevel)
 	}
 
 	// Check for required token

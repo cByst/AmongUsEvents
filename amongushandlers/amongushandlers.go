@@ -2,6 +2,7 @@ package amongushandlers
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -15,6 +16,16 @@ func AttachHandlers(discordSession *discordgo.Session) {
 	discordSession.AddHandler(commandHandler)
 	discordSession.AddHandler(messageReactionAddHandle)
 	discordSession.AddHandler(messageReactionRemoveHandle)
+	discordSession.AddHandler(serverBotAddHandler)
+	discordSession.AddHandler(serverBotRemoveHandler)
+}
+
+func serverBotAddHandler(s *discordgo.Session, g *discordgo.GuildCreate) {
+	log.Infof("Discord Server %s added the AmongUsEvents bot", g.Name)
+}
+
+func serverBotRemoveHandler(s *discordgo.Session, g *discordgo.GuildDelete) {
+	log.Infof("Discord Server %s removed AmongUsEvents bot", g.Name)
 }
 
 func messageReactionRemoveHandle(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
@@ -80,7 +91,11 @@ func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReaction
 			log.Error(errors.WithMessage(err, "Error resyncing event state in reaction add handler for change time reaction event"))
 		}
 	} else {
-		err = s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, m.MessageReaction.Emoji.Name, m.MessageReaction.UserID)
+		reactionID := m.MessageReaction.Emoji.Name
+		if m.MessageReaction.Emoji.ID != "" {
+			reactionID = url.QueryEscape(fmt.Sprintf("<:%s:%s", m.MessageReaction.Emoji.Name, m.MessageReaction.Emoji.ID))
+		}
+		err = s.MessageReactionRemove(m.MessageReaction.ChannelID, m.MessageReaction.MessageID, reactionID, m.MessageReaction.UserID)
 		if err != nil {
 			log.Error(errors.WithMessage(err, fmt.Sprintf("Error removing unsupported reaction in message reaction add handler for %s reaction event", m.MessageReaction.Emoji.Name)))
 		}
@@ -108,6 +123,7 @@ func commandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!CreateAmongEvent ") {
 		title := strings.Trim(strings.TrimPrefix(m.Content, "!CreateAmongEvent "), "\"")
 
+		log.Infof("Creating new among event with title: %s for user: %s", title, m.Author.Username)
 		err = amongusevents.CreateEvent(s, title, m.ChannelID)
 		if err != nil {
 			log.Error(errors.WithMessage(err, "Error creating event in create event command handler"))
