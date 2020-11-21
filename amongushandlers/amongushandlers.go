@@ -159,7 +159,7 @@ func getAmongUsRoleID(s *discordgo.Session, guildID string) (string, error) {
 		return "-1", err
 	}
 	for _, role := range roles {
-		if "amongusbot" == strings.ToLower(role.Name) {
+		if "AmongUs - Events" == strings.ToLower(role.Name) {
 			return role.ID, nil
 		}
 	}
