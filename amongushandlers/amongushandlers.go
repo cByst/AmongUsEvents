@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/cbyst/AmongUsHelper/amongusevents"
+	"github.com/cbyst/AmongUsEvents/amongusevents"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

@@ -22,7 +22,7 @@ func CreateEvent(session *discordgo.Session, title string, channelID string) err
 			Title: title,
 			Color: 15105570,
 			Author: &discordgo.MessageEmbedAuthor{
-				Name:    "Among Us Helper Bot",
+				Name:    "Among Us Events Bot",
 				IconURL: "https://i.imgur.com/Mf4Rj0T.png",
 			},
 			Description: "\u200B\n",
@@ -136,7 +136,7 @@ func (s *amongUsEventState) updateEmbedMessageFromState(session *discordgo.Sessi
 			Title: s.eventTitle,
 			Color: 15105570,
 			Author: &discordgo.MessageEmbedAuthor{
-				Name:    "Among Us Helper Bot",
+				Name:    "Among Us Events Bot",
 				IconURL: "https://i.imgur.com/Mf4Rj0T.png",
 			},
 			Description: "\u200B\n",

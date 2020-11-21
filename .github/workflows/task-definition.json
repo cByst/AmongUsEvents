@@ -9,7 +9,7 @@
                 "logDriver": "awslogs",
                 "secretOptions": null,
                 "options": {
-                    "awslogs-group": "/ecs/AmongUsHelperTask",
+                    "awslogs-group": "/ecs/AmongUsEventsTask",
                     "awslogs-region": "us-east-1",
                     "awslogs-stream-prefix": "ecs"
                 }
@@ -51,7 +51,7 @@
             "dockerLabels": null,
             "systemControls": null,
             "privileged": null,
-            "name": "AmongUsHelper"
+            "name": "AmongUsEvents"
         }
     ],
     "placementConstraints": [],
@@ -61,8 +61,8 @@
         "EC2",
         "FARGATE"
     ],
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:{REPLACE.AccountId}:task-definition/AmongUsHelperTask:4",
-    "family": "AmongUsHelperTask",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:{REPLACE.AccountId}:task-definition/AmongUsEventsTask:1",
+    "family": "AmongUsEventsTask",
     "requiresAttributes": [
         {
             "targetId": null,
