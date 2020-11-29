@@ -63,9 +63,11 @@ func extractEventState(session *discordgo.Session, message *discordgo.Message) (
 	}
 
 	var attendingUsers []string
-	for _, user := range rsvpYes {
-		if !user.Bot {
-			attendingUsers = append(attendingUsers, user.Username)
+	if rsvpYes != nil {
+		for _, user := range rsvpYes {
+			if !user.Bot {
+				attendingUsers = append(attendingUsers, user.Username)
+			}
 		}
 	}
 
@@ -75,9 +77,11 @@ func extractEventState(session *discordgo.Session, message *discordgo.Message) (
 	}
 
 	var notAttendingUsers []string
-	for _, user := range rsvpNo {
-		if !user.Bot {
-			notAttendingUsers = append(notAttendingUsers, user.Username)
+	if rsvpNo != nil {
+		for _, user := range rsvpNo {
+			if !user.Bot {
+				notAttendingUsers = append(notAttendingUsers, user.Username)
+			}
 		}
 	}
 
@@ -87,9 +91,11 @@ func extractEventState(session *discordgo.Session, message *discordgo.Message) (
 	}
 
 	var timeChangeRequestedUsers []string
-	for _, user := range timeChangeRequested {
-		if !user.Bot {
-			timeChangeRequestedUsers = append(timeChangeRequestedUsers, user.Username)
+	if timeChangeRequested != nil {
+		for _, user := range timeChangeRequested {
+			if !user.Bot {
+				timeChangeRequestedUsers = append(timeChangeRequestedUsers, user.Username)
+			}
 		}
 	}
 
