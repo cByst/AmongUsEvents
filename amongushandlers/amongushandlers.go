@@ -33,6 +33,12 @@ func messageReactionRemoveHandle(s *discordgo.Session, m *discordgo.MessageReact
 	if err != nil {
 		log.Error(errors.WithMessage(err, "Error finding message in message reaction remove handler"))
 	}
+
+	// ignore messages that were not created by the bot
+	if message.Author.ID != s.State.User.ID {
+		return
+	}
+
 	err = amongusevents.ReSyncEvent(s, message)
 	if err != nil {
 		log.Error(errors.WithMessage(err, "Error resyncing event state in reaction remove handler"))
@@ -45,7 +51,7 @@ func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReaction
 		log.Error(errors.WithMessage(err, "Error finding message in message reaction add handler"))
 	}
 
-	// Ignore if action was performed by the bot
+	// Ignore if action was performed by the bot or the message was not created by the bot
 	if m.MessageReaction.UserID == s.State.User.ID || message.Author.ID != s.State.User.ID {
 		return
 	}
