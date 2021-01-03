@@ -31,7 +31,8 @@ func serverBotRemoveHandler(s *discordgo.Session, g *discordgo.GuildDelete) {
 func messageReactionRemoveHandle(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
 	message, err := s.ChannelMessage(m.MessageReaction.ChannelID, m.MessageReaction.MessageID)
 	if err != nil {
-		log.Error(errors.WithMessage(err, "Error finding message in message reaction remove handler"))
+		log.Error(errors.WithMessagef(err, "Error finding message in message reaction remove handler for ChannelID: %s and MessageId: %s and GuildId: %s and Emoji: %s", m.MessageReaction.ChannelID, m.MessageReaction.MessageID, m.MessageReaction.GuildID, m.MessageReaction.Emoji.Name))
+		return
 	}
 
 	// ignore messages that were not created by the bot
@@ -48,7 +49,8 @@ func messageReactionRemoveHandle(s *discordgo.Session, m *discordgo.MessageReact
 func messageReactionAddHandle(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 	message, err := s.ChannelMessage(m.MessageReaction.ChannelID, m.MessageReaction.MessageID)
 	if err != nil {
-		log.Error(errors.WithMessage(err, "Error finding message in message reaction add handler"))
+		log.Error(errors.WithMessagef(err, "Error finding message in message reaction add handler for ChannelID: %s and MessageId: %s and GuildId: %s and Emoji: %s", m.MessageReaction.ChannelID, m.MessageReaction.MessageID, m.MessageReaction.GuildID, m.MessageReaction.Emoji.Name))
+		return
 	}
 
 	// Ignore if action was performed by the bot or the message was not created by the bot
